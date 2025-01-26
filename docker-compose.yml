@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:10.11.5
+    environment:
+      MYSQL_DATABASE: djangodb
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+      MYSQL_ROOT_PASSWORD: mypassword
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./mysite
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./mysite:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MARIADB_USER: myuser
+      MARIADB_PASSWORD: mypassword
+      MARIADB_HOST: db
+      MARIADB_PORT: 3306
+      MARIADB_DATABASE: djangodb

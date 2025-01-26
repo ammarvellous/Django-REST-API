@@ -3,24 +3,29 @@
 FROM --platform=${BUILDPLATFORM} python:3.8-slim AS builder
 EXPOSE 8000
 WORKDIR /app
+
+
 # Install dependencies
-RUN apk update
-RUN apk add \
+RUN apt-get update && apt-get install -y \
     gcc \
     musl-dev \
     libffi-dev \
-    openssl-dev \
+    libssl-dev \
     python3-dev \
     cargo \
-    mariadb-dev
+    libmariadb-dev \
+    pkg-config
 
 # Install any needed packages specified in requirements.txt
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
 # Copy the rest of the application code
-COPY . /app
+COPY . .
 
-# Run server
-ENTRYPOINT ["python3"]
-CMD ["manage.py", "runserver", "0.0.0.0:8000"]
+# Expose port 8000
+EXPOSE 8000
+
+# Run the application
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
